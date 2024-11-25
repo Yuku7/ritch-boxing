@@ -1,0 +1,72 @@
+/* 全体を中央に配置 */
+/* 画面全体を中央配置 */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* ビューポートの高さに合わせる */
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* ゲーム全体を中央にまとめるコンテナ */
+#gameContainer {
+    text-align: center;
+    width: 80%; /* コンテンツ幅を制限 */
+    max-width: 600px; /* 最大幅を指定して中央配置 */
+    margin: 0 auto;
+}
+
+/* 各セクションの間に余白を追加 */
+h1, h2, h3 {
+    margin-bottom: 15px;
+}
+
+/* タイマー、結果、スコア表示を大きめに調整 */
+#timer, #result, #totalUserScore, #totalPcScore {
+    font-size: 3rem;
+    text-align: center;
+    margin-bottom: 100px;
+}
+
+/* スコアテーブルのデザイン */
+table {
+    margin: 20px auto;
+    width: 100%; /* テーブル全体の幅 */
+    max-width: 400px;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+/* クリアボタンの配置とデザイン */
+#clearBtn {
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: block;
+}
+
+/* 画像のサイズと配置 */
+img {
+    width: 100px;
+    height: auto;
+    cursor: pointer;
+    margin: 10px;
+}
+
+#resultContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+}
+
+#userImg, #pcImg {
+    margin: 0 20px;
+}
