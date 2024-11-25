@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ボクシング</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 中央配置用のコンテナ -->
+    <div id="gameContainer">
+        <h1>ボクシング対戦</h1>
+        <h2>あなたの戦術を選択してください</h2>
+        <h3>パンチ：キックに勝つ、ガードに負ける<br>
+            キック：ガードに勝つ、パンチに負ける<br>
+            ガード：パンチに勝つ、キックに負ける</h3>
+
+        <!-- 戦術選択 -->
+        <table>
+            <tr>
+                <td><img src="img/panch.png" onclick="playRound(0)"></td>
+                <td><img src="img/kick.png" onclick="playRound(1)"></td>
+                <td><img src="img/guard.png" onclick="playRound(2)"></td>
+            </tr>
+        </table>
+        
+        <hr>
+        
+        <!-- タイマー表示 -->
+        <h3>残り時間: <span id="timer">12</span> 秒</h3>
+
+        <!-- 結果表示部分 -->
+        <div id="resultContainer">
+            <div>
+                <p>あなたの戦術:</p>
+                <img src="" id="userImg">
+            </div>
+            <div>
+                <p>相手の戦術:</p>
+                <img src="" id="pcImg">
+            </div>
+        </div>
+
+        <!-- 結果とスコア -->
+        <h3>結果</h3>
+        <p id="result">-</p>
+
+        <h3>スコア</h3>
+        <table>
+            <tr>
+                <th>ラウンド</th>
+                <th>あなた</th>
+                <th>相手</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td id="score1User">0</td>
+                <td id="score1Pc">0</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td id="score2User">0</td>
+                <td id="score2Pc">0</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td id="score3User">0</td>
+                <td id="score3Pc">0</td>
+            </tr>
+        </table>
+
+        <h3>合計スコア</h3>
+        <table>
+            <tr>
+                <td>あなた</td>
+                <td id="totalUserScore">0</td>
+            </tr>
+            <tr>
+                <td>相手</td>
+                <td id="totalPcScore">0</td>
+            </tr>
+        </table>
+
+        <!-- リセットボタン -->
+        <button id="clearBtn" onclick="resetGame()">クリア</button>
+    </div>
+    <script>
+        let currentRound = 0;
+        let userScore = [0, 0, 0];  // 3ラウンド分のスコアを配列で管理
+        let pcScore = [0, 0, 0];  // 3ラウンド分のスコアを配列で管理
+        let timerValue = 12;
+        let timer;
+
+        // タイマーのカウントダウン
+        function startTimer() {
+            timer = setInterval(function () {
+                if (timerValue > 0) {
+                    timerValue--;
+                    document.getElementById("timer").textContent = timerValue;
+                } else {
+                    clearInterval(timer);  // タイマー停止
+                    endRound();  // ラウンド終了処理
+                }
+            }, 1000);
+        }
+
+        function playRound(user) {
+            if (currentRound >= 3 || timerValue === 0) return; // 3ラウンド終了後はクリックできない
+
+            // 第1ラウンドが開始したらタイマーを開始
+            if (currentRound === 0 && timerValue === 12) {
+                startTimer();
+            }
+
+            // 戦術の画像を設定
+            let userJankens = ['panch.png', 'kick.png', 'guard.png'];
+            let pcJankens = ['panch_rev.png', 'kick_rev.png', 'guard_rev.png'];
+
+            let userImg = document.getElementById("userImg");
+            let pcImg = document.getElementById("pcImg");
+
+            userImg.src = "img/" + userJankens[user];
+            let pc;
+
+            // ラウンドごとのコンピューターの選択ロジック
+            if (currentRound === 0) {
+                // 1ラウンド目：ランダム
+                pc = getRandomChoice();
+            } else if (currentRound === 1) {
+                // 2ラウンド目：確率
+                pc = getProbabilityChoice();
+            } else if (currentRound === 2) {
+                // 3ラウンド目：ランダムと確率の混合
+                pc = getMixedChoice();
+            }
+
+            pcImg.src = "img/" + pcJankens[pc];
+
+            // 勝敗判定
+            let result = [
+                ['あいこ', '勝ち', '負け'],
+                ['負け', 'あいこ', '勝ち'],
+                ['勝ち', '負け', 'あいこ']
+            ];
+
+            let roundResult = result[user][pc];
+            document.getElementById("result").textContent = roundResult;
+
+            // ラウンドスコアの更新（勝った場合のみカウント）
+            if (roundResult === '勝ち') {
+                userScore[currentRound]++;
+            } else if (roundResult === '負け') {
+                pcScore[currentRound]++;
+            }
+
+            updateScore();
+        }
+
+        // ランダムな選択
+        function getRandomChoice() {
+            return Math.floor(Math.random() * 3); // 0, 1, 2からランダムに選択
+        }
+
+        // 確率に基づく選択
+        function getProbabilityChoice() {
+            // 例: パンチが50%、キックが30%、ガードが20%の確率
+            let probabilities = [0.5, 0.3, 0.2]; // 合計は1
+            let randomValue = Math.random(); // 0以上1未満のランダムな数
+
+            if (randomValue < probabilities[0]) {
+                return 0; // パンチ
+            } else if (randomValue < probabilities[0] + probabilities[1]) {
+                return 1; // キック
+            } else {
+                return 2; // ガード
+            }
+        }
+
+        // ランダムと確率の混合選択
+        function getMixedChoice() {
+            let randomValue = Math.random();
+
+            if (randomValue < 0.5) {
+                // 50%の確率で完全ランダム
+                return getRandomChoice();
+            } else {
+                // 50%の確率で確率的な選択
+                return getProbabilityChoice();
+            }
+        }
+
+        function updateScore() {
+            // ラウンドごとのスコアを更新
+            document.getElementById("score" + (currentRound + 1) + "User").textContent = userScore[currentRound];
+            document.getElementById("score" + (currentRound + 1) + "Pc").textContent = pcScore[currentRound];
+
+            // 合計スコアの更新
+            let totalUserScore = userScore.reduce((sum, score) => sum + score, 0);
+            let totalPcScore = pcScore.reduce((sum, score) => sum + score, 0);
+
+            document.getElementById("totalUserScore").textContent = totalUserScore;
+            document.getElementById("totalPcScore").textContent = totalPcScore;
+        }
+
+        function endRound() {
+            if (currentRound < 3) {
+                currentRound++;
+                // ラウンド終了後の処理
+                document.getElementById("timer").textContent = "0"; // タイマーを0秒にリセット
+                alert(currentRound + "ラウンド終了");
+
+                // ラウンド終了後、次のラウンドに進む確認
+                if (currentRound < 3) {
+                    let proceed = confirm("次のラウンドを開始しますか？");
+                    if (proceed) {
+                        // 次のラウンドを開始
+                        timerValue = 12;
+                        document.getElementById("timer").textContent = timerValue;
+                        startTimer();
+                    } else {
+                        resetGame();
+                    }
+                } else {
+                    alert("全ラウンド終了！最終結果を確認してください。");
+                    showWinner();
+                }
+            }
+        }
+
+        function resetGame() {
+            userScore = [0, 0, 0];  // スコアをリセット
+            pcScore = [0, 0, 0];    // スコアをリセット
+            currentRound = 0;
+            timerValue = 12;
+            document.getElementById("timer").textContent = timerValue;
+
+            // 画像と結果のリセット
+            document.getElementById("userImg").src = "";
+            document.getElementById("pcImg").src = "";
+            document.getElementById("result").textContent = "-";
+            document.getElementById("score1User").textContent = "0";
+            document.getElementById("score1Pc").textContent = "0";
+            document.getElementById("score2User").textContent = "0";
+            document.getElementById("score2Pc").textContent = "0";
+            document.getElementById("score3User").textContent = "0";
+            document.getElementById("score3Pc").textContent = "0";
+            document.getElementById("totalUserScore").textContent = "0";
+            document.getElementById("totalPcScore").textContent = "0";
+
+            clearInterval(timer); // タイマーの停止
+        }
+
+        function showWinner() {
+            // 合計スコアの確認
+            let totalUserScore = userScore.reduce((sum, score) => sum + score, 0);
+            let totalPcScore = pcScore.reduce((sum, score) => sum + score, 0);
+
+            if (totalUserScore > totalPcScore) {
+                alert("あなたの勝ちです！");
+            } else if (totalUserScore < totalPcScore) {
+                alert("あなたの負けです！");
+            } else {
+                alert("あいこです！");
+            }
+        }
+    </script>
+</body>
+</html>
